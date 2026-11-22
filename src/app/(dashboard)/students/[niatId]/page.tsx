@@ -3,10 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CopyButton, TimeAgo } from "@/components/client-bits";
 import { EditStudentButton } from "@/components/edit-student-button";
+import { PracticeCharts } from "@/components/practice-charts";
 import { HandleBadge, ParticipationBadge } from "@/components/status-badge";
 import { EmptyState, Meter, PageHeader, Panel, Stat, td, th } from "@/components/ui-kit";
 import { verifySession } from "@/lib/auth";
 import { fixed1, formatDateIST, formatPhone, isPlaceholderNiatId, pct, problemUrl, profileUrl } from "@/lib/format";
+import { getStudentPractice } from "@/lib/queries/practice";
 import { getStudentDetail } from "@/lib/queries/students";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +23,7 @@ export default async function StudentPage({ params }: PageProps<"/students/[niat
   const d = await getStudentDetail(decodeURIComponent(niatId));
   if (!d) notFound();
   const { student: s, history, kpis } = d;
+  const practice = await getStudentPractice(s.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -132,6 +135,11 @@ export default async function StudentPage({ params }: PageProps<"/students/[niat
           </div>
         )}
       </Panel>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-medium">Practice</h2>
+        <PracticeCharts data={practice} />
+      </section>
     </div>
   );
 }

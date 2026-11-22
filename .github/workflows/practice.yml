@@ -1,0 +1,39 @@
+# Daily practice sync (IMPLEMENTATION_PLAN.md, Phase 5): rating snapshots + new submissions.
+# 22:17 UTC = 03:47 IST, after the 21:47 UTC full contest sync.
+# Needs repository secrets: DATABASE_URL, CF_API_KEY, CF_API_SECRET, CF_KEY_HANDLE.
+name: Practice sync
+
+on:
+  schedule:
+    - cron: "17 22 * * *"
+  workflow_dispatch:
+
+# Shares the Codeforces concurrency group with the contest sync: never two at once.
+concurrency:
+  group: codeforces-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  practice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Sync practice
+        run: npx tsx --conditions=react-server scripts/practice.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_API_SECRET: ${{ secrets.CF_API_SECRET }}
+          CF_KEY_HANDLE: ${{ secrets.CF_KEY_HANDLE }}

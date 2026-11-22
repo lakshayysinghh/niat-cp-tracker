@@ -98,3 +98,33 @@ export const cfStandingsResult = z.object({
   rows: z.array(cfRanklistRow),
 });
 export type CfStandings = z.infer<typeof cfStandingsResult>;
+
+// ---------------------------------------------------------------- Phase 5: practice
+
+/** user.status: one submission. participantType kept as a string so practice data never fails on a new type. */
+export const cfSubmission = z.object({
+  id: z.number().int(),
+  contestId: z.number().int().optional(),
+  creationTimeSeconds: z.number().int(),
+  problem: z.object({
+    contestId: z.number().int().optional(),
+    index: z.string(),
+    name: z.string(),
+    rating: z.number().int().optional(),
+    tags: z.array(z.string()).default([]),
+  }),
+  author: z.object({ participantType: z.string() }),
+  verdict: z.string().optional(),
+});
+export type CfSubmission = z.infer<typeof cfSubmission>;
+export const cfUserStatusResult = z.array(cfSubmission);
+
+/** user.rating: one official rating change. */
+export const cfRatingChange = z.object({
+  contestId: z.number().int(),
+  contestName: z.string(),
+  ratingUpdateTimeSeconds: z.number().int(),
+  oldRating: z.number().int(),
+  newRating: z.number().int(),
+});
+export const cfUserRatingResult = z.array(cfRatingChange);
