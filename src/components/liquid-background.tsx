@@ -44,7 +44,7 @@ void main() {
   vec2 uv = gl_FragCoord.xy / u_res;
   vec2 p = (gl_FragCoord.xy - 0.5 * u_res) / u_res.y;
   p = p * 1.7 + u_tilt * 0.12;           // parallax toward the pointer
-  float t = u_time;
+  float t = u_time * 0.5;                // half speed: slow, calm flow
 
   float e = 0.012;
   float h = height(p, t);
@@ -58,19 +58,19 @@ void main() {
   float fres = pow(1.0 - n.z, 2.0);
 
   vec3 bg      = vec3(0.035, 0.043, 0.058);   // near-black, cool
-  vec3 deep    = vec3(0.020, 0.150, 0.115);   // deep emerald
+  vec3 deep    = vec3(0.030, 0.230, 0.175);   // deep emerald
   vec3 emerald = vec3(0.204, 0.827, 0.600);
   vec3 teal    = vec3(0.078, 0.722, 0.651);
 
-  vec3 col = mix(bg, deep, smoothstep(0.25, 0.85, h) * 0.85);
-  col += mix(teal, emerald, h) * diff * 0.10;
-  col += emerald * spec * 0.55;
-  col += teal * fres * 0.35;
+  vec3 col = mix(bg, deep, smoothstep(0.20, 0.85, h));
+  col += mix(teal, emerald, h) * diff * 0.18;
+  col += emerald * spec * 0.85;
+  col += teal * fres * 0.55;
 
-  // Calm the centre (where the card sits) and fade to black at the edges.
+  // Calm the centre (where the card sits) a little and fade softly at the edges.
   float centre = smoothstep(0.0, 0.55, length((uv - 0.5) * vec2(u_res.x / u_res.y, 1.0)));
-  col *= mix(0.55, 1.0, centre);
-  float vig = 1.0 - smoothstep(0.35, 1.25, length(uv - 0.5) * 1.4);
+  col *= mix(0.72, 1.0, centre);
+  float vig = 1.0 - smoothstep(0.45, 1.45, length(uv - 0.5) * 1.4);
   col *= vig;
 
   gl_FragColor = vec4(col, 1.0);
