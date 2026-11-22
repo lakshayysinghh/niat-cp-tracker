@@ -96,9 +96,11 @@ export function mapCfError(method: string, comment: string, ctx: CfErrorContext 
   if (/^contestId\s*:/i.test(c)) {
     const who = ctx.keyHandle ? `\`${ctx.keyHandle}\`` : "the API key account";
     const contest = ctx.contestId !== undefined ? ` ${ctx.contestId}` : "";
+    // Phase 0 finding: API access follows the per-contest "Manager" checkbox on the
+    // group's Contests page, even for a group manager (tests/fixtures/README.md).
     const fix = ctx.groupCode
-      ? `Make sure ${who} has joined group \`${ctx.groupCode}\`, or switch access mode to Member.`
-      : `Make sure the contest ID is correct and ${who} can view the contest.`;
+      ? `On codeforces.com/group/${ctx.groupCode}/contests, tick "Manager" for this contest, and make sure ${who} is a manager of group \`${ctx.groupCode}\`.`
+      : `Make sure the contest ID is correct and ${who} is a manager of the contest.`;
     return new CfContestAccessError(method, comment, `Codeforces could not show contest${contest} to ${who}. ${fix} (${c})`);
   }
 

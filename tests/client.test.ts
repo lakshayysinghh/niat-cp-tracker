@@ -31,7 +31,8 @@ describe("mapCfError (comment-prefix mapping)", () => {
       contestId: 734032,
     });
     expect(e).toBeInstanceOf(CfContestAccessError);
-    expect(e.message).toContain("Make sure `bhagi_1122` has joined group `vP4zGe21UV`");
+    expect(e.message).toContain("tick \"Manager\" for this contest");
+    expect(e.message).toContain("`bhagi_1122` is a manager of group `vP4zGe21UV`");
     expect(e.message).toContain("contest 734032");
   });
 
