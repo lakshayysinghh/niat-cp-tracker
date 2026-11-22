@@ -3,7 +3,7 @@ import { and, eq, inArray, ne } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { db } from "@/db";
 import { students, type Student } from "@/db/schema";
-import { cleanRows, cleanStudent, normalizeHandle, type CleanRow, type RawRow, type RowFailure } from "@/lib/csv";
+import { cleanRows, cleanStudent, normalizeHandle, normalizeNiatId, type CleanRow, type RawRow, type RowFailure } from "@/lib/csv";
 import { normalizePhone } from "@/lib/phone";
 import { verifyHandles, type VerifyResult } from "@/lib/sync/handles";
 import { withLock } from "@/lib/sync/lock";
@@ -64,7 +64,7 @@ export async function createStudent(input: Record<string, unknown>, adminId: str
   const batchId = await getDefaultBatchId();
   const [created] = await db
     .insert(students)
-    .values({ batchId, niatId: v.niatId, name: v.name, phone: v.phone, enteredHandle: v.enteredHandle, cfHandle: v.cfHandle, handleLower: v.handleLower })
+    .values({ batchId, niatId: v.niatId, name: v.name, college: v.college, phone: v.phone, enteredHandle: v.enteredHandle, cfHandle: v.cfHandle, handleLower: v.handleLower })
     .returning({ id: students.id });
 
   const verification = await runVerification([created.id], adminId);
@@ -85,6 +85,19 @@ export async function updateStudent(id: string, patch: Record<string, unknown>, 
   if (patch.name !== undefined) {
     const name = String(patch.name ?? "").trim();
     set.name = name ? name.slice(0, 200) : null;
+  }
+  if (patch.college !== undefined) {
+    const college = String(patch.college ?? "").trim();
+    set.college = college ? college.slice(0, 200) : null;
+  }
+  if (patch.niatId !== undefined) {
+    const n = normalizeNiatId(String(patch.niatId ?? ""));
+    if (!n.ok) throw new StudentInputError(n.error);
+    if (n.niatId !== current.niatId) {
+      const [taken] = await db.select({ id: students.id }).from(students).where(eq(students.niatId, n.niatId));
+      if (taken) throw new StudentConflictError("DUPLICATE_NIAT_ID", `NIAT ID ${n.niatId} already exists`);
+      set.niatId = n.niatId;
+    }
   }
   let handleChanged = false;
   if (patch.cfHandle !== undefined) {
@@ -166,7 +179,7 @@ export async function planImport(rows: readonly RawRow[]): Promise<ImportPlan> {
     }
     const enteredLower = normalizeHandle(cur.enteredHandle);
     const sameHandle = r.handleLower === cur.handleLower || (enteredLower.ok && enteredLower.handle.toLowerCase() === r.handleLower);
-    const same = sameHandle && cur.phone === r.phone && (cur.name ?? null) === r.name && cur.enteredHandle === r.enteredHandle;
+    const same = sameHandle && cur.phone === r.phone && (cur.name ?? null) === r.name && (cur.college ?? null) === r.college && cur.enteredHandle === r.enteredHandle;
     preview.push({ ...r, action: same ? "unchanged" : "update", handleChanged: !sameHandle });
   }
   failed.sort((a, b) => a.row - b.row);
@@ -186,6 +199,7 @@ export async function commitImport(plan: ImportPlan, adminId: string) {
           batchId,
           niatId: r.niatId,
           name: r.name,
+          college: r.college,
           phone: r.phone,
           enteredHandle: r.enteredHandle,
           cfHandle: r.cfHandle,
@@ -196,8 +210,8 @@ export async function commitImport(plan: ImportPlan, adminId: string) {
   }
   for (const r of updates) {
     const set: Partial<typeof students.$inferInsert> = r.handleChanged
-      ? { phone: r.phone, name: r.name, ...resetHandle(r.enteredHandle, r.cfHandle) }
-      : { phone: r.phone, name: r.name, enteredHandle: r.enteredHandle };
+      ? { phone: r.phone, name: r.name, college: r.college, ...resetHandle(r.enteredHandle, r.cfHandle) }
+      : { phone: r.phone, name: r.name, college: r.college, enteredHandle: r.enteredHandle };
     statements.push(db.update(students).set(set).where(eq(students.niatId, r.niatId)));
   }
   if (statements.length) await db.batch(statements as [BatchItem<"pg">, ...BatchItem<"pg">[]]);

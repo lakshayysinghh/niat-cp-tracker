@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth";
 import { safeNextPath } from "@/lib/http";
 import { LoginForm } from "./login-form";
 
-export const metadata = { title: "Sign in · NIAT CF Tracker" };
+export const metadata = { title: "Sign in" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const { next } = await searchParams;
@@ -13,8 +13,12 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (await getSession()) redirect(nextPath);
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
-      <LoginForm nextPath={nextPath} />
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6">
+      {/* One soft accent glow; everything else stays flat. */}
+      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-120 w-180 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+      <div className="relative w-full max-w-sm">
+        <LoginForm nextPath={nextPath} />
+      </div>
     </main>
   );
 }

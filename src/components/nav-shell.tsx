@@ -1,16 +1,15 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { BarChart3, LogOut, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Contests" },
-  { href: "/students", label: "Students" },
-  { href: "/overview", label: "Overview" },
+  { href: "/", label: "Contests", icon: Trophy },
+  { href: "/students", label: "Students", icon: Users },
+  { href: "/overview", label: "Overview", icon: BarChart3 },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -18,7 +17,19 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function NavShell({ email }: { email: string }) {
+function Brand() {
+  return (
+    <Link href="/" className="flex items-center gap-2">
+      <span className="grid size-6 place-items-center rounded-md bg-primary/15 font-mono text-[11px] font-bold text-primary ring-1 ring-inset ring-primary/30">
+        &gt;_
+      </span>
+      <span className="text-sm font-semibold tracking-tight">NIAT CP Tracker</span>
+      <span className="rounded border border-border px-1.5 py-px text-[10px] text-muted-foreground">Batch 1</span>
+    </Link>
+  );
+}
+
+export function NavShell({ email, children }: { email: string; children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
@@ -30,40 +41,66 @@ export function NavShell({ email }: { email: string }) {
     router.refresh();
   }
 
-  return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur">
-      <div className="flex h-12 items-center gap-6 px-4">
-        <Link href="/" className="text-sm font-semibold tracking-tight">
-          NIAT CF Tracker
+  const links = (vertical: boolean) =>
+    NAV.map(({ href, label, icon: Icon }) => {
+      const active = isActive(pathname, href);
+      return (
+        <Link
+          key={href}
+          href={href}
+          aria-current={active ? "page" : undefined}
+          className={cn(
+            "flex items-center gap-2.5 rounded-md text-sm transition-colors",
+            vertical ? "px-2.5 py-1.5" : "px-2 py-1",
+            active ? "bg-sidebar-accent text-foreground" : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground",
+          )}
+        >
+          <Icon className={cn("size-4", active ? "text-primary" : "opacity-70")} aria-hidden />
+          {label}
         </Link>
-        <nav aria-label="Main" className="flex items-center gap-1">
-          {NAV.map((item) => {
-            const active = isActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "rounded-md px-2.5 py-1 text-sm transition-colors",
-                  active ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="ml-auto flex items-center gap-3">
-          <span className="hidden text-xs text-muted-foreground sm:inline" title="Signed in as">
-            {email}
-          </span>
-          <Button variant="ghost" size="sm" onClick={logout} disabled={leaving}>
-            <LogOut className="size-4" aria-hidden />
-            Logout
-          </Button>
+      );
+    });
+
+  return (
+    <div className="flex min-h-screen">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
+        <div className="px-4 pb-4 pt-5">
+          <Brand />
         </div>
+        <nav aria-label="Main" className="flex flex-col gap-0.5 px-2">
+          {links(true)}
+        </nav>
+        <div className="mt-auto border-t border-sidebar-border px-3 py-3">
+          <div className="flex items-center justify-between gap-2">
+            <span className="truncate text-xs text-muted-foreground" title={email}>
+              {email}
+            </span>
+            <button
+              type="button"
+              onClick={logout}
+              disabled={leaving}
+              title="Log out"
+              aria-label="Log out"
+              className="rounded-md p-1.5 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground disabled:opacity-50"
+            >
+              <LogOut className="size-4" aria-hidden />
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-12 items-center gap-4 border-b border-border bg-background/90 px-4 backdrop-blur md:hidden">
+          <Brand />
+          <nav aria-label="Main" className="ml-auto flex items-center gap-1">
+            {links(false)}
+          </nav>
+          <button type="button" onClick={logout} aria-label="Log out" className="p-1 text-muted-foreground">
+            <LogOut className="size-4" aria-hidden />
+          </button>
+        </header>
+        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-8 sm:py-8">{children}</main>
       </div>
-    </header>
+    </div>
   );
 }

@@ -8,6 +8,13 @@
       "when": 1795325886725,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795328981708,
+      "tag": "0001_student_college",
+      "breakpoints": true
     }
   ]
 }

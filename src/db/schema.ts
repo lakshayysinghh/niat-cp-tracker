@@ -59,6 +59,7 @@ export const students = pgTable(
     batchId: uuid("batch_id").notNull().references(() => batches.id, { onDelete: "restrict" }),
     niatId: text("niat_id").notNull().unique(), // trimmed, uppercased
     name: text("name"),
+    college: text("college"), // added in Phase 3 (optional)
     phone: text("phone").notNull(), // +91XXXXXXXXXX
     enteredHandle: text("entered_handle").notNull(), // as the admin typed it
     cfHandle: text("cf_handle").notNull(), // current handle from user.info

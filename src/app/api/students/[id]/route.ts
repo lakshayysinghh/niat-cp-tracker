@@ -10,7 +10,7 @@ import { isUniqueViolation } from "@/lib/sync/respond";
 
 const uuid = z.uuid();
 
-/** PATCH /api/students/[id] { phone?, name?, cfHandle? } -> 200 { student, verification? } */
+/** PATCH /api/students/[id] { niatId?, phone?, name?, college?, cfHandle? } -> 200 { student, verification? } */
 export async function PATCH(request: Request, ctx: RouteContext<"/api/students/[id]">) {
   const auth = await requireApiSession();
   if (auth instanceof Response) return auth;
@@ -18,9 +18,9 @@ export async function PATCH(request: Request, ctx: RouteContext<"/api/students/[
   if (!uuid.safeParse(id).success) return jsonError(404, "NOT_FOUND", "Student not found");
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
-  if (!body || typeof body !== "object") return jsonError(400, "BAD_REQUEST", "Send any of phone, name, cfHandle");
-  const patch = Object.fromEntries(Object.entries(body).filter(([k]) => ["phone", "name", "cfHandle"].includes(k)));
-  if (Object.keys(patch).length === 0) return jsonError(400, "BAD_REQUEST", "Send any of phone, name, cfHandle");
+  if (!body || typeof body !== "object") return jsonError(400, "BAD_REQUEST", "Send any of niatId, phone, name, college, cfHandle");
+  const patch = Object.fromEntries(Object.entries(body).filter(([k]) => ["phone", "name", "college", "cfHandle", "niatId"].includes(k)));
+  if (Object.keys(patch).length === 0) return jsonError(400, "BAD_REQUEST", "Send any of niatId, phone, name, college, cfHandle");
 
   try {
     const result = await updateStudent(id, patch, auth.adminId);

@@ -10,7 +10,7 @@ import {
   getCfClient,
   type CfErrorContext,
 } from "@/lib/cf/client";
-import { cfStandingsResult, type CfStandings } from "@/lib/cf/schemas";
+import { cfContestListResult, cfStandingsResult, type CfStandings } from "@/lib/cf/schemas";
 import { CHUNK, verifyHandles } from "./handles";
 import { LockBusyError, withLock, type LockHandle } from "./lock";
 import { mergeStandings } from "./merge";
@@ -92,6 +92,23 @@ async function fetchStandings(contest: Contest, handles: readonly string[], lock
     if (!isAccessRefusal(err)) throw err;
     return { standings: await fetchAll(order[1] === "MANAGER"), resolvedMode: order[1] };
   }
+}
+
+/** Title, start and duration from contest.list?gym=true&groupCode=… (works without contest access). */
+async function fillFromGroupList(contest: Contest) {
+  const list = await getCfClient().call("contest.list", { gym: true, groupCode: contest.groupCode }, cfContestListResult);
+  const c = list.find((x) => x.id === contest.cfContestId);
+  if (!c) return;
+  await db
+    .update(contests)
+    .set({
+      title: c.name,
+      scoringType: c.type,
+      phase: c.phase,
+      startsAt: c.startTimeSeconds ? new Date(c.startTimeSeconds * 1000) : null,
+      durationSeconds: c.durationSeconds,
+    })
+    .where(eq(contests.id, contest.id));
 }
 
 async function loadRoster(batchId: string) {
@@ -201,6 +218,10 @@ export async function syncContest(contestId: string, opts: SyncOptions): Promise
         // 7. Keep the old snapshot; record the error on the contest and the run.
         const message = err instanceof Error ? err.message : String(err);
         await db.update(contests).set({ lastSyncError: message.slice(0, 2000) }).where(eq(contests.id, contest.id)).catch(() => undefined);
+        // A contest the API cannot open yet still has a name and date in the group's contest list.
+        if (err instanceof CfContestAccessError && contest.groupCode && contest.title === `Contest ${contest.cfContestId}`) {
+          await fillFromGroupList(contest).catch(() => undefined);
+        }
         await finishRun(runId, false, cf.callCount() - calls0, message).catch(() => undefined);
         throw err;
       }

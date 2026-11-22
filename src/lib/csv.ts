@@ -9,13 +9,14 @@ import { normalizePhone } from "./phone";
 export const MAX_ROWS = 2000;
 export const MAX_BYTES = 1_000_000;
 
-export type Field = "niat_id" | "phone" | "cf_handle" | "name";
+export type Field = "niat_id" | "phone" | "cf_handle" | "name" | "college";
 
 export const HEADER_ALIASES: Record<Field, readonly string[]> = {
   niat_id: ["niat_id", "niat id", "niatid", "student_id", "id"],
   phone: ["phone", "phone_number", "phone number", "mobile", "contact"],
   cf_handle: ["cf_handle", "cf handle", "codeforces_handle", "codeforces handle", "handle", "codeforces"],
   name: ["name", "student_name", "student name", "full_name"],
+  college: ["college", "college_name", "institute", "institution", "university", "campus"],
 };
 const REQUIRED: readonly Field[] = ["niat_id", "phone", "cf_handle"];
 
@@ -45,6 +46,7 @@ export interface CleanRow {
   cfHandle: string;
   handleLower: string;
   name: string | null;
+  college: string | null;
 }
 
 export interface RowFailure {
@@ -151,6 +153,7 @@ export interface StudentInput {
   phone?: unknown;
   cfHandle?: unknown;
   name?: unknown;
+  college?: unknown;
 }
 
 export type CleanOne =
@@ -167,6 +170,7 @@ export function cleanStudent(input: StudentInput): CleanOne {
   const handle = normalizeHandle(entered);
   if (!handle.ok) return { ok: false, niatId: niat.niatId, reason: handle.error };
   const name = String(input.name ?? "").trim();
+  const college = String(input.college ?? "").trim();
   return {
     ok: true,
     value: {
@@ -176,6 +180,7 @@ export function cleanStudent(input: StudentInput): CleanOne {
       cfHandle: handle.handle,
       handleLower: handle.handle.toLowerCase(),
       name: name ? name.slice(0, 200) : null,
+      college: college ? college.slice(0, 200) : null,
     },
   };
 }
@@ -188,7 +193,7 @@ export function cleanRows(rows: readonly RawRow[]): { valid: CleanRow[]; failed:
   const handleFirst = new Map<string, number>();
 
   for (const r of rows) {
-    const c = cleanStudent({ niatId: r.values.niat_id, phone: r.values.phone, cfHandle: r.values.cf_handle, name: r.values.name });
+    const c = cleanStudent({ niatId: r.values.niat_id, phone: r.values.phone, cfHandle: r.values.cf_handle, name: r.values.name, college: r.values.college });
     if (!c.ok) {
       failed.push({ row: r.row, niatId: c.niatId, reason: c.reason });
       continue;
