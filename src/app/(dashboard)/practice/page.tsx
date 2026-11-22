@@ -10,9 +10,10 @@ export const metadata = { title: "Practice" };
 export default async function PracticePage() {
   await verifySession();
   const { rows, lastSyncedAt } = await getPracticeTable();
-  const active = rows.filter((r) => r.solved7 > 0).length;
+  const active = rows.filter((r) => r.practice7 > 0).length;
   const idle = rows.filter((r) => r.daysSinceAc == null || r.daysSinceAc >= 7).length;
-  const weekTotal = rows.reduce((a, r) => a + r.solved7, 0);
+  const practiceWeek = rows.reduce((a, r) => a + r.practice7, 0);
+  const contestWeek = rows.reduce((a, r) => a + r.contest7, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -32,9 +33,10 @@ export default async function PracticePage() {
         </section>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat label="Practised this week" value={`${active} / ${rows.length}`} hint="solved at least one new problem in 7 days" />
-            <Stat label="Problems solved this week" value={weekTotal} hint="new problems, whole batch" />
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <Stat label="Practised this week" value={`${active} / ${rows.length}`} hint="a new practice problem in 7 days" />
+            <Stat label="Practice solves this week" value={practiceWeek} hint="new problems, whole batch" />
+            <Stat label="Contest solves this week" value={contestWeek} hint="in the batch’s group contests" />
             <Stat label="No AC in 7 days" value={idle} tone={idle ? "warn" : "good"} hint="filter the table to follow up" />
             <Stat label="Median rating" value={median(rows.map((r) => r.rating).filter((r): r is number => r != null)) ?? "—"} hint="rated students only" />
           </div>

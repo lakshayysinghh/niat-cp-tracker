@@ -2,7 +2,7 @@
 
 import { ArrowDownRight, ArrowUpRight, Search } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { HandleBadge } from "@/components/status-badge";
 import { td, th } from "@/components/ui-kit";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { profileUrl } from "@/lib/format";
 import type { PracticeRow } from "@/lib/queries/practice";
 import { cn } from "@/lib/utils";
 
-type Sort = "WEEK" | "MONTH" | "IDLE" | "RATING" | "CHANGE";
+type Sort = "PRACTICE_WEEK" | "PRACTICE_MONTH" | "CONTEST_WEEK" | "CONTEST_MONTH" | "IDLE" | "RATING" | "CHANGE";
 
 const INACTIVE_DAYS = 7;
 const inactive = (r: PracticeRow) => r.daysSinceAc == null || r.daysSinceAc >= INACTIVE_DAYS;
@@ -28,10 +28,21 @@ function Change({ now, then }: { now: number | null; then: number | null }) {
   );
 }
 
+const Num = ({ n }: { n: number }) => (n ? <>{n}</> : <span className="text-muted-foreground">0</span>);
+
+/** Column-group header spanning two count columns. */
+function Group({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <th colSpan={2} scope="colgroup" className={cn("border-b border-border px-3 pt-2.5 pb-1 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground", className)}>
+      {children}
+    </th>
+  );
+}
+
 export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
   const [q, setQ] = useState("");
   const [onlyIdle, setOnlyIdle] = useState(false);
-  const [sort, setSort] = useState<Sort>("WEEK");
+  const [sort, setSort] = useState<Sort>("PRACTICE_WEEK");
   const idleCount = rows.filter(inactive).length;
 
   const visible = useMemo(() => {
@@ -42,18 +53,23 @@ export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
         (!needle || r.niatId.toLowerCase().includes(needle) || (r.name ?? "").toLowerCase().includes(needle) || r.cfHandle.toLowerCase().includes(needle)),
     );
     const idle = (r: PracticeRow) => r.daysSinceAc ?? 1e6;
+    const change = (r: PracticeRow) => (r.rating != null && r.rating30dAgo != null ? r.rating - r.rating30dAgo : -1e6);
     out.sort((a, b) => {
       switch (sort) {
-        case "WEEK":
-          return b.solved7 - a.solved7 || b.solved28 - a.solved28;
-        case "MONTH":
-          return b.solved28 - a.solved28 || b.solved7 - a.solved7;
+        case "PRACTICE_WEEK":
+          return b.practice7 - a.practice7 || b.practice28 - a.practice28;
+        case "PRACTICE_MONTH":
+          return b.practice28 - a.practice28 || b.practice7 - a.practice7;
+        case "CONTEST_WEEK":
+          return b.contest7 - a.contest7 || b.contest28 - a.contest28;
+        case "CONTEST_MONTH":
+          return b.contest28 - a.contest28 || b.contest7 - a.contest7;
         case "IDLE":
           return idle(b) - idle(a);
         case "RATING":
           return (b.rating ?? -1) - (a.rating ?? -1);
         case "CHANGE":
-          return (b.rating != null && b.rating30dAgo != null ? b.rating - b.rating30dAgo : -1e6) - (a.rating != null && a.rating30dAgo != null ? a.rating - a.rating30dAgo : -1e6);
+          return change(b) - change(a);
       }
     });
     return out;
@@ -81,8 +97,10 @@ export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
         <label className="ml-auto inline-flex items-center gap-2 text-xs text-muted-foreground">
           Sort
           <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="h-8 rounded-md border border-input bg-transparent px-2 text-xs text-foreground">
-            <option value="WEEK">Solved this week</option>
-            <option value="MONTH">Solved in 4 weeks</option>
+            <option value="PRACTICE_WEEK">Practice · this week</option>
+            <option value="PRACTICE_MONTH">Practice · 4 weeks</option>
+            <option value="CONTEST_WEEK">Contests · this week</option>
+            <option value="CONTEST_MONTH">Contests · 4 weeks</option>
             <option value="IDLE">Longest without AC</option>
             <option value="RATING">Rating</option>
             <option value="CHANGE">Rating change (30 d)</option>
@@ -91,16 +109,24 @@ export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
       </div>
 
       <section className="scrollbar-thin overflow-x-auto rounded-xl border border-border bg-card/40">
-        <table className="w-full min-w-[920px] text-sm">
-          <thead className="border-b border-border">
+        <table className="w-full min-w-[1040px] text-sm">
+          <thead>
             <tr>
+              <th colSpan={4} aria-hidden className="border-b border-border" />
+              <Group className="border-l border-border">Practice</Group>
+              <Group className="border-l border-border">Group contests</Group>
+              <th colSpan={2} aria-hidden className="border-b border-border" />
+            </tr>
+            <tr className="border-b border-border">
               <th className={th}>Student</th>
               <th className={th}>Codeforces</th>
               <th className={cn(th, "text-right")}>Rating</th>
               <th className={cn(th, "text-right")}>30-day change</th>
-              <th className={cn(th, "text-right")}>Solved · 7 d</th>
-              <th className={cn(th, "text-right")}>Solved · 28 d</th>
-              <th className={cn(th, "text-right")}>Avg problem rating · 28 d</th>
+              <th className={cn(th, "border-l border-border text-right")}>7 d</th>
+              <th className={cn(th, "text-right")}>28 d</th>
+              <th className={cn(th, "border-l border-border text-right")}>7 d</th>
+              <th className={cn(th, "text-right")}>28 d</th>
+              <th className={cn(th, "text-right")}>Avg practice rating · 28 d</th>
               <th className={cn(th, "text-right")}>Last AC</th>
             </tr>
           </thead>
@@ -125,8 +151,18 @@ export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
                 <td className={cn(td, "text-right")}>
                   <Change now={r.rating} then={r.rating30dAgo} />
                 </td>
-                <td className={cn(td, "text-right tabular-nums")}>{r.solved7 || <span className="text-muted-foreground">0</span>}</td>
-                <td className={cn(td, "text-right tabular-nums")}>{r.solved28 || <span className="text-muted-foreground">0</span>}</td>
+                <td className={cn(td, "border-l border-border text-right tabular-nums")}>
+                  <Num n={r.practice7} />
+                </td>
+                <td className={cn(td, "text-right tabular-nums")}>
+                  <Num n={r.practice28} />
+                </td>
+                <td className={cn(td, "border-l border-border text-right tabular-nums")}>
+                  <Num n={r.contest7} />
+                </td>
+                <td className={cn(td, "text-right tabular-nums")}>
+                  <Num n={r.contest28} />
+                </td>
                 <td className={cn(td, "text-right tabular-nums")}>{r.avgRating28 ?? <span className="text-muted-foreground">—</span>}</td>
                 <td className={cn(td, "whitespace-nowrap text-right tabular-nums")}>
                   {r.daysSinceAc == null ? (
@@ -134,16 +170,14 @@ export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
                   ) : r.daysSinceAc === 0 ? (
                     "today"
                   ) : (
-                    <span className={cn(r.daysSinceAc >= INACTIVE_DAYS && "text-amber-300")}>
-                      {r.daysSinceAc} d ago
-                    </span>
+                    <span className={cn(r.daysSinceAc >= INACTIVE_DAYS && "text-amber-300")}>{r.daysSinceAc} d ago</span>
                   )}
                 </td>
               </tr>
             ))}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-3 py-10 text-center text-sm text-muted-foreground">
+                <td colSpan={10} className="px-3 py-10 text-center text-sm text-muted-foreground">
                   {onlyIdle ? "Everyone has an accepted submission in the last 7 days." : "No students match."}
                 </td>
               </tr>
@@ -152,7 +186,9 @@ export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
         </table>
       </section>
       <p className="text-xs text-muted-foreground">
-        A problem counts once, on its first accepted submission. “7 d” and “28 d” are rolling windows ending now (IST).
+        Counts are new problems, each counted once on its first accepted submission, in rolling windows ending now (IST). <span className="text-foreground">Practice</span> is everything
+        outside the batch&apos;s group contests (problemset, gyms, other contests); <span className="text-foreground">Group contests</span> covers live, virtual and upsolve solves in the
+        tracked mashups. “Last AC” counts both.
       </p>
     </div>
   );

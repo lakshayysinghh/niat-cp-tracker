@@ -20,8 +20,13 @@ export interface PracticeRow {
   handleStatus: "UNVERIFIED" | "VALID" | "INVALID";
   rating: number | null;
   rating30dAgo: number | null;
-  solved7: number;
-  solved28: number;
+  /** new problems solved outside the batch's group contests (problemset, gyms, other contests) */
+  practice7: number;
+  practice28: number;
+  /** new problems solved in the batch's tracked group contests (live, virtual or upsolve) */
+  contest7: number;
+  contest28: number;
+  /** average rating of practice problems first solved in the last 28 days */
   avgRating28: number | null;
   solvedTotal: number;
   lastAcAt: Date | null;
@@ -42,17 +47,23 @@ export async function getPracticeTable() {
       .where(eq(students.batchId, batchId))
       .orderBy(asc(students.niatId)),
     db.execute(sql`
-      with first_ac as (
-        select student_id, ${PROBLEM_KEY} as k, min(submitted_at) as first_at, max(problem_rating) as rating
-        from submissions where verdict = 'OK'
+      with tracked as (select cf_contest_id from contests where batch_id = ${batchId}),
+      first_ac as (
+        select student_id, k, min(submitted_at) as first_at, max(problem_rating) as rating, bool_or(in_contest) as in_contest
+        from (
+          select student_id, ${PROBLEM_KEY} as k, submitted_at, problem_rating,
+                 coalesce(cf_contest_id in (select cf_contest_id from tracked), false) as in_contest
+          from submissions where verdict = 'OK'
+        ) x
         group by student_id, k
       )
       select student_id,
-        count(*) filter (where first_at >= now() - interval '7 days')::int  as solved7,
-        count(*) filter (where first_at >= now() - interval '28 days')::int as solved28,
-        round(avg(rating) filter (where first_at >= now() - interval '28 days'))::int as avg28,
+        count(*) filter (where not in_contest and first_at >= now() - interval '7 days')::int  as practice7,
+        count(*) filter (where not in_contest and first_at >= now() - interval '28 days')::int as practice28,
+        count(*) filter (where in_contest and first_at >= now() - interval '7 days')::int      as contest7,
+        count(*) filter (where in_contest and first_at >= now() - interval '28 days')::int     as contest28,
+        round(avg(rating) filter (where not in_contest and first_at >= now() - interval '28 days'))::int as avg28,
         count(*)::int as total,
-        max(first_at) as last_new,
         (select max(submitted_at) from submissions s2 where s2.student_id = first_ac.student_id and s2.verdict = 'OK') as last_ac
       from first_ac group by student_id`),
     db.execute(sql`
@@ -63,7 +74,16 @@ export async function getPracticeTable() {
     db.select({ at: max(practiceSyncState.lastSyncedAt) }).from(practiceSyncState),
   ]);
 
-  type Solved = { student_id: string; solved7: number; solved28: number; avg28: number | null; total: number; last_ac: string | Date | null };
+  type Solved = {
+    student_id: string;
+    practice7: number;
+    practice28: number;
+    contest7: number;
+    contest28: number;
+    avg28: number | null;
+    total: number;
+    last_ac: string | Date | null;
+  };
   const solved = new Map(rowsOf<Solved>(solvedRes).map((r) => [r.student_id, r]));
   const old = new Map(rowsOf<{ student_id: string; rating: number | null }>(ratingRes).map((r) => [r.student_id, r.rating]));
 
@@ -81,8 +101,10 @@ export async function getPracticeTable() {
       handleStatus: s.handleStatus,
       rating: s.rating,
       rating30dAgo: old.get(s.id) ?? null,
-      solved7: x?.solved7 ?? 0,
-      solved28: x?.solved28 ?? 0,
+      practice7: x?.practice7 ?? 0,
+      practice28: x?.practice28 ?? 0,
+      contest7: x?.contest7 ?? 0,
+      contest28: x?.contest28 ?? 0,
       avgRating28: x?.avg28 ?? null,
       solvedTotal: x?.total ?? 0,
       lastAcAt: lastAc,
