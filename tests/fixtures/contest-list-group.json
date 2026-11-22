@@ -1,0 +1,168 @@
+{
+  "method": "contest.list",
+  "params": {
+    "gym": true,
+    "groupCode": "vP4zGe21UV"
+  },
+  "fetchedAt": "2026-11-22T05:23:18.505Z",
+  "httpStatus": 200,
+  "response": {
+    "status": "OK",
+    "result": [
+      {
+        "id": 734032,
+        "name": "Number theory contest, batch-1",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1795078800,
+        "relativeTimeSeconds": 246198,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 732375,
+        "name": "Training Contest 3 Batch 1",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1794646800,
+        "relativeTimeSeconds": 678198,
+        "preparedBy": "ironman263"
+      },
+      {
+        "id": 731904,
+        "name": "Training Contest 2 Batch 1",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1794474000,
+        "relativeTimeSeconds": 850998,
+        "preparedBy": "ironman263"
+      },
+      {
+        "id": 731302,
+        "name": "Training Contest 1 - Batch 1",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1794301200,
+        "relativeTimeSeconds": 1023798,
+        "preparedBy": "ironman263"
+      },
+      {
+        "id": 730357,
+        "name": "Number theory contest - 1, Batch-1",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1793869200,
+        "relativeTimeSeconds": 1455798,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 728535,
+        "name": "Batch-1, 29th",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1793264400,
+        "relativeTimeSeconds": 2060598,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 726522,
+        "name": "22nd Oct, Batch-1",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1792659600,
+        "relativeTimeSeconds": 2665398,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 724611,
+        "name": "The Special Batch",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1792054800,
+        "relativeTimeSeconds": 3270198,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 722650,
+        "name": "Cohort - 1, contest",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1791450000,
+        "relativeTimeSeconds": 3874998,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 720741,
+        "name": "STL contest",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1790845200,
+        "relativeTimeSeconds": 4479798,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 718839,
+        "name": "Contest on prefix arrays",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1790240400,
+        "relativeTimeSeconds": 5084598,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 715592,
+        "name": "Third Contest",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1789043400,
+        "relativeTimeSeconds": 6281598,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 714309,
+        "name": "Second contest",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1788525000,
+        "relativeTimeSeconds": 6799998,
+        "preparedBy": "noobiesAG"
+      },
+      {
+        "id": 711836,
+        "name": "First Contest",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1787232600,
+        "relativeTimeSeconds": 8092398,
+        "preparedBy": "noobiesAG"
+      }
+    ]
+  }
+}

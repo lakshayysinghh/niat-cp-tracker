@@ -1,0 +1,41 @@
+{
+  "method": "user.info",
+  "params": {
+    "handles": "usecarelessly18;gorugantisathish",
+    "checkHistoricHandles": true
+  },
+  "fetchedAt": "2026-11-22T05:23:08.659Z",
+  "httpStatus": 200,
+  "response": {
+    "status": "OK",
+    "result": [
+      {
+        "contribution": 0,
+        "lastOnlineTimeSeconds": 1795165941,
+        "rating": 1066,
+        "friendOfCount": 6,
+        "titlePhoto": "https://userpic.codeforces.org/4554757/title/be207a356d296a0.jpg",
+        "rank": "newbie",
+        "handle": "usecarelessly18",
+        "maxRating": 1099,
+        "avatar": "https://userpic.codeforces.org/4554757/avatar/898164777a22d693.jpg",
+        "registrationTimeSeconds": 1735970430,
+        "email": "usecarelessly18@gmail.com",
+        "maxRank": "newbie"
+      },
+      {
+        "contribution": 0,
+        "lastOnlineTimeSeconds": 1795276701,
+        "rating": 936,
+        "friendOfCount": 8,
+        "titlePhoto": "https://userpic.codeforces.org/no-title.jpg",
+        "rank": "newbie",
+        "handle": "gorugantisathish",
+        "maxRating": 936,
+        "avatar": "https://userpic.codeforces.org/no-avatar.jpg",
+        "registrationTimeSeconds": 1784546808,
+        "maxRank": "newbie"
+      }
+    ]
+  }
+}

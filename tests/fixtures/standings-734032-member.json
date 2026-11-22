@@ -1,0 +1,287 @@
+{
+  "method": "contest.standings",
+  "params": {
+    "contestId": 734032,
+    "handles": "usecarelessly18;gorugantisathish",
+    "showUnofficial": true
+  },
+  "fetchedAt": "2026-11-22T05:23:16.118Z",
+  "httpStatus": 200,
+  "response": {
+    "status": "OK",
+    "result": {
+      "contest": {
+        "id": 734032,
+        "name": "Number theory contest, batch-1",
+        "type": "ICPC",
+        "phase": "FINISHED",
+        "frozen": false,
+        "durationSeconds": 7200,
+        "startTimeSeconds": 1795078800,
+        "relativeTimeSeconds": 246195,
+        "preparedBy": "noobiesAG"
+      },
+      "problems": [
+        {
+          "contestId": 734032,
+          "index": "A",
+          "name": "Minimum LCM",
+          "type": "PROGRAMMING",
+          "rating": 1000,
+          "tags": []
+        },
+        {
+          "contestId": 734032,
+          "index": "B",
+          "name": "Insert and Equalize",
+          "type": "PROGRAMMING",
+          "rating": 1300,
+          "tags": []
+        },
+        {
+          "contestId": 734032,
+          "index": "C",
+          "name": "Subset Multiplication",
+          "type": "PROGRAMMING",
+          "rating": 1300,
+          "tags": []
+        },
+        {
+          "contestId": 734032,
+          "index": "D",
+          "name": "Fadi and LCM",
+          "type": "PROGRAMMING",
+          "rating": 1400,
+          "tags": []
+        },
+        {
+          "contestId": 734032,
+          "index": "E",
+          "name": "Dora and C++",
+          "type": "PROGRAMMING",
+          "rating": 1500,
+          "tags": []
+        },
+        {
+          "contestId": 734032,
+          "index": "F",
+          "name": "Diluc and Kaeya",
+          "type": "PROGRAMMING",
+          "rating": 1500,
+          "tags": []
+        }
+      ],
+      "rows": [
+        {
+          "party": {
+            "contestId": 734032,
+            "participantId": 250797520,
+            "members": [
+              {
+                "handle": "usecarelessly18"
+              }
+            ],
+            "participantType": "CONTESTANT",
+            "ghost": false,
+            "startTimeSeconds": 1795078800
+          },
+          "rank": 1,
+          "points": 3,
+          "penalty": 274,
+          "successfulHackCount": 0,
+          "unsuccessfulHackCount": 0,
+          "problemResults": [
+            {
+              "points": 1,
+              "rejectedAttemptCount": 1,
+              "type": "FINAL",
+              "bestSubmissionTimeSeconds": 1957
+            },
+            {
+              "points": 1,
+              "rejectedAttemptCount": 2,
+              "type": "FINAL",
+              "bestSubmissionTimeSeconds": 2777
+            },
+            {
+              "points": 1,
+              "rejectedAttemptCount": 1,
+              "type": "FINAL",
+              "bestSubmissionTimeSeconds": 6979
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            }
+          ]
+        },
+        {
+          "party": {
+            "contestId": 734032,
+            "participantId": 250797414,
+            "members": [
+              {
+                "handle": "gorugantisathish"
+              }
+            ],
+            "participantType": "CONTESTANT",
+            "ghost": false,
+            "startTimeSeconds": 1795078800
+          },
+          "rank": 6,
+          "points": 1,
+          "penalty": 71,
+          "successfulHackCount": 0,
+          "unsuccessfulHackCount": 0,
+          "problemResults": [
+            {
+              "points": 0,
+              "rejectedAttemptCount": 1,
+              "type": "FINAL"
+            },
+            {
+              "points": 1,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL",
+              "bestSubmissionTimeSeconds": 4285
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            }
+          ]
+        },
+        {
+          "party": {
+            "contestId": 734032,
+            "participantId": 250802111,
+            "members": [
+              {
+                "handle": "gorugantisathish"
+              }
+            ],
+            "participantType": "PRACTICE",
+            "ghost": false,
+            "startTimeSeconds": 1795078800
+          },
+          "rank": 0,
+          "points": 1,
+          "penalty": 35791394,
+          "successfulHackCount": 0,
+          "unsuccessfulHackCount": 0,
+          "problemResults": [
+            {
+              "points": 1,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL",
+              "bestSubmissionTimeSeconds": 2147483647
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            }
+          ]
+        },
+        {
+          "party": {
+            "contestId": 734032,
+            "participantId": 250806865,
+            "members": [
+              {
+                "handle": "usecarelessly18"
+              }
+            ],
+            "participantType": "PRACTICE",
+            "ghost": false,
+            "startTimeSeconds": 1795078800
+          },
+          "rank": 0,
+          "points": 0,
+          "penalty": 0,
+          "successfulHackCount": 0,
+          "unsuccessfulHackCount": 0,
+          "problemResults": [
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 1,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            },
+            {
+              "points": 0,
+              "rejectedAttemptCount": 0,
+              "type": "FINAL"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

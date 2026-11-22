@@ -1,0 +1,13 @@
+{
+  "method": "user.info",
+  "params": {
+    "handles": "usecarelessly18;zz_no_such_handle_niat_0",
+    "checkHistoricHandles": true
+  },
+  "fetchedAt": "2026-11-22T05:23:11.000Z",
+  "httpStatus": 400,
+  "response": {
+    "status": "FAILED",
+    "comment": "handles: User with handle zz_no_such_handle_niat_0 not found"
+  }
+}
