@@ -3,6 +3,7 @@
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,12 +39,13 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
 
   return (
     <div className="w-full max-w-sm">
-      <div className="mb-8 flex items-center justify-center gap-2">
-        <span className="grid size-7 place-items-center rounded-md bg-primary/15 font-mono text-xs font-bold text-primary ring-1 ring-inset ring-primary/30">&gt;_</span>
-        <span className="font-semibold tracking-tight">NIAT CP Tracker</span>
-        <span className="rounded border border-border px-1.5 py-px text-[10px] text-muted-foreground">Batch 1</span>
+      <div className="mb-8 flex justify-center">
+        <Logo size="lg" />
       </div>
-      <div className="rounded-2xl border border-border bg-card/70 p-7 shadow-2xl shadow-black/40 backdrop-blur">
+
+      {/* Frosted "liquid glass" card over the animated backdrop */}
+      <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[oklch(0.17_0.005_260/0.55)] p-7 shadow-2xl shadow-black/50 backdrop-blur-2xl backdrop-saturate-150">
+        <div aria-hidden className="pointer-events-none absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-white/30 to-transparent" />
         <h1 className="text-center text-lg font-semibold tracking-tight">Admin sign in</h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">Authorised batch mentors only</p>
         <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4" noValidate>
@@ -51,13 +53,13 @@ export function LoginForm({ nextPath }: { nextPath: string }) {
             <Label htmlFor="email" className="text-xs">
               Work email
             </Label>
-            <Input id="email" name="email" type="email" autoComplete="username" required autoFocus className="h-10" />
+            <Input id="email" name="email" type="email" autoComplete="username" required autoFocus className="h-10 bg-black/20" />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="password" className="text-xs">
               Password
             </Label>
-            <Input id="password" name="password" type="password" autoComplete="current-password" required className="h-10" />
+            <Input id="password" name="password" type="password" autoComplete="current-password" required className="h-10 bg-black/20" />
           </div>
           {error && (
             <p role="alert" className="flex items-start gap-2 text-sm text-red-300">

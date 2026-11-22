@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { LiquidBackground } from "@/components/liquid-background";
 import { getSession } from "@/lib/auth";
 import { safeNextPath } from "@/lib/http";
 import { LoginForm } from "./login-form";
@@ -14,8 +15,7 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden p-6">
-      {/* One soft accent glow; everything else stays flat. */}
-      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-120 w-180 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+      <LiquidBackground className="absolute inset-0" />
       <div className="relative w-full max-w-sm">
         <LoginForm nextPath={nextPath} />
       </div>

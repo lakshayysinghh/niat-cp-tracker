@@ -4,6 +4,7 @@ import { BarChart3, LogOut, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
+import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -19,12 +20,9 @@ function isActive(pathname: string, href: string) {
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2">
-      <span className="grid size-6 place-items-center rounded-md bg-primary/15 font-mono text-[11px] font-bold text-primary ring-1 ring-inset ring-primary/30">
-        &gt;_
-      </span>
-      <span className="text-sm font-semibold tracking-tight">NIAT CP Tracker</span>
-      <span className="rounded border border-border px-1.5 py-px text-[10px] text-muted-foreground">Batch 1</span>
+    <Link href="/" className="flex items-center gap-2" aria-label="CP Tracker home">
+      <Logo />
+      <span className="ml-auto rounded border border-border px-1.5 py-px text-[10px] text-muted-foreground">Batch 1</span>
     </Link>
   );
 }

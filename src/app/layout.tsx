@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "NIAT CP Tracker", template: "%s · NIAT CP Tracker" },
+  title: { default: "CP Tracker", template: "%s · CP Tracker" },
   description: "Internal dashboard for tracking a batch across Codeforces group contests",
   robots: { index: false, follow: false },
 };
