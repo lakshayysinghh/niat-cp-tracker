@@ -67,7 +67,9 @@ export async function getPracticeTable() {
   const solved = new Map(rowsOf<Solved>(solvedRes).map((r) => [r.student_id, r]));
   const old = new Map(rowsOf<{ student_id: string; rating: number | null }>(ratingRes).map((r) => [r.student_id, r.rating]));
 
-  const now = Date.now();
+  // Calendar days in IST: 23:53 yesterday is "1 d ago", not "today".
+  const istDay = (d: Date) => Date.parse(new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(d));
+  const today = istDay(new Date());
   const rows: PracticeRow[] = roster.map((s) => {
     const x = solved.get(s.id);
     const lastAc = x?.last_ac ? new Date(x.last_ac) : null;
@@ -84,7 +86,7 @@ export async function getPracticeTable() {
       avgRating28: x?.avg28 ?? null,
       solvedTotal: x?.total ?? 0,
       lastAcAt: lastAc,
-      daysSinceAc: lastAc ? Math.floor((now - lastAc.getTime()) / 86400000) : null,
+      daysSinceAc: lastAc ? Math.round((today - istDay(lastAc)) / 86400000) : null,
     };
   });
   return { rows, lastSyncedAt: sync?.at ?? null };

@@ -1,8 +1,8 @@
 import "server-only";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import type { BatchItem } from "drizzle-orm/batch";
 import { db } from "@/db";
-import { practiceSyncState, ratingSnapshots, students, submissions } from "@/db/schema";
+import { contests, practiceSyncState, ratingSnapshots, students, submissions } from "@/db/schema";
 import { CfHandleNotFoundError, getCfClient } from "@/lib/cf/client";
 import { cfUserRatingResult, cfUserStatusResult, type CfSubmission } from "@/lib/cf/schemas";
 import { verifyHandles } from "./handles";
@@ -17,6 +17,8 @@ import { finishRun, getDefaultBatchId, startRun, type RunContext } from "./runs"
  *     rating chart has real history from day one (one snapshot per official round).
  *  3. user.status per student: full history on the first run, then incremental -
  *     newest 100, stopping at practice_sync_state.lastSubmissionId.
+ *  4. contest.status per tracked group contest: private-group submissions that
+ *     user.status never returns (one call per contest).
  * Takes the Codeforces lock per chunk of students so a manual refresh can slip in.
  */
 
@@ -31,6 +33,8 @@ export interface PracticeResult {
   fullHistory: number;
   incremental: number;
   submissionsAdded: number;
+  contestsScanned: number;
+  contestSubmissionsAdded: number;
   cfCalls: number;
   errors: Array<{ handle: string; error: string }>;
 }
@@ -66,7 +70,7 @@ export async function syncPractice(opts: RunContext & { studentIds?: string[]; l
   const cf = getCfClient();
   const calls0 = cf.callCount();
   const lockWaitMs = opts.lockWaitMs ?? 90_000;
-  const result: PracticeResult = { students: 0, snapshots: 0, ratingHistories: 0, fullHistory: 0, incremental: 0, submissionsAdded: 0, cfCalls: 0, errors: [] };
+  const result: PracticeResult = { students: 0, snapshots: 0, ratingHistories: 0, fullHistory: 0, incremental: 0, submissionsAdded: 0, contestsScanned: 0, contestSubmissionsAdded: 0, cfCalls: 0, errors: [] };
   const runId = await startRun("PRACTICE", opts);
 
   try {
@@ -179,8 +183,47 @@ export async function syncPractice(opts: RunContext & { studentIds?: string[]; l
       );
     }
 
+    // 4. Group-contest submissions. user.status does not return submissions made inside a
+    //    private group's mashups, so read each tracked contest with contest.status (manager
+    //    mode when it resolved to manager) and keep the roster's submissions. Upsolves done
+    //    in the group then count as practice too. Submission ids are unique: re-reads are no-ops.
+    const tracked = await db
+      .select({ cfContestId: contests.cfContestId, groupCode: contests.groupCode, resolvedMode: contests.resolvedMode })
+      .from(contests)
+      .where(and(eq(contests.batchId, batchId), isNotNull(contests.lastSyncedAt)));
+    const idByHandle = new Map(roster.map((s) => [s.cfHandle.toLowerCase(), s.id]));
+    for (const group of chunks(tracked, STUDENTS_PER_LOCK)) {
+      await withLock(
+        async (lock) => {
+          for (const c of group) {
+            await lock.renew();
+            try {
+              const subs = await cf.call(
+                "contest.status",
+                { contestId: c.cfContestId, asManager: c.resolvedMode === "MANAGER" || undefined },
+                cfUserStatusResult,
+                { groupCode: c.groupCode, contestId: c.cfContestId },
+              );
+              const rows = subs.flatMap((x) => {
+                const id = idByHandle.get(x.author.members[0]?.handle.toLowerCase() ?? "");
+                return id ? [toRow(id, x)] : [];
+              });
+              for (const part of chunks(rows, INSERT_CHUNK)) {
+                const added = await db.insert(submissions).values(part).onConflictDoNothing().returning({ id: submissions.cfSubmissionId });
+                result.contestSubmissionsAdded += added.length;
+              }
+              result.contestsScanned++;
+            } catch (err) {
+              result.errors.push({ handle: `contest ${c.cfContestId}`, error: `contest.status: ${err instanceof Error ? err.message : String(err)}` });
+            }
+          }
+        },
+        { waitMs: lockWaitMs },
+      );
+    }
+
     result.cfCalls = cf.callCount() - calls0;
-    const note = `${result.students} students, ${result.submissionsAdded} new submissions (${result.fullHistory} full, ${result.incremental} incremental), ${result.ratingHistories} rating histories`;
+    const note = `${result.students} students, ${result.submissionsAdded} new submissions (${result.fullHistory} full, ${result.incremental} incremental), ${result.contestSubmissionsAdded} from ${result.contestsScanned} group contests, ${result.ratingHistories} rating histories`;
     await finishRun(runId, result.errors.length === 0, result.cfCalls, result.errors.length ? `${note} | errors: ${result.errors.map((e) => `${e.handle}: ${e.error}`).join("; ")}` : note);
     return result;
   } catch (err) {

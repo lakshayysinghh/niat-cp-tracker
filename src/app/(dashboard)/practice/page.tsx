@@ -20,7 +20,7 @@ export default async function PracticePage() {
         title="Practice"
         description={
           <>
-            Codeforces practice outside contests · updated daily at 03:47 IST · last sync <TimeAgo date={lastSyncedAt} />
+            All Codeforces activity, including the batch’s group contests · updated daily at 03:47 IST · last sync <TimeAgo date={lastSyncedAt} />
           </>
         }
       />

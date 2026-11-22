@@ -113,7 +113,7 @@ export const cfSubmission = z.object({
     rating: z.number().int().optional(),
     tags: z.array(z.string()).default([]),
   }),
-  author: z.object({ participantType: z.string() }),
+  author: z.object({ participantType: z.string(), members: z.array(z.object({ handle: z.string() })).default([]) }),
   verdict: z.string().optional(),
 });
 export type CfSubmission = z.infer<typeof cfSubmission>;

@@ -11,6 +11,7 @@ async function main() {
   console.log(
     `practice: ${r.students} students · ${r.snapshots} rating snapshots · ${r.ratingHistories} rating histories · ` +
       `${r.fullHistory} full + ${r.incremental} incremental submission fetches · ${r.submissionsAdded} new submissions · ` +
+      `${r.contestSubmissionsAdded} group-contest submissions from ${r.contestsScanned} contests · ` +
       `${r.cfCalls} Codeforces calls · ${((Date.now() - t0) / 1000).toFixed(1)} s`,
   );
   for (const e of r.errors) console.log(`  error ${e.handle}: ${e.error}`);
