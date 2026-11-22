@@ -14,7 +14,8 @@
     "seed": "tsx scripts/seed-admin.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "test-data:delete": "tsx scripts/delete-test-students.ts"
+    "test-data:delete": "tsx scripts/delete-test-students.ts",
+    "sync": "tsx --conditions=react-server scripts/sync.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

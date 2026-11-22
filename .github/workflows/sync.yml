@@ -1,0 +1,44 @@
+# Scheduled contest sync (IMPLEMENTATION_PLAN.md, Section 6).
+# Every 3 hours at :47; the 21:47 UTC run (03:17 IST) syncs every contest.
+# Needs repository secrets: DATABASE_URL, CF_API_KEY, CF_API_SECRET, CF_KEY_HANDLE.
+name: Scheduled sync
+
+on:
+  schedule:
+    - cron: "47 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      all:
+        description: "Sync every contest (not just the last 21 days)"
+        type: boolean
+        default: false
+
+# Never run two syncs at once; a queued run waits instead of being cancelled.
+concurrency:
+  group: codeforces-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: Sync contests
+        run: npx tsx --conditions=react-server scripts/sync.ts ${{ inputs.all && '--all' || '' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          CF_API_SECRET: ${{ secrets.CF_API_SECRET }}
+          CF_KEY_HANDLE: ${{ secrets.CF_KEY_HANDLE }}

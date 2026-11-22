@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalContestUrl, parseCfUrl, URL_ERROR } from "@/lib/cf/parse-url";
+import { canonicalContestUrl, parseCfUrl, parseGroupCode, URL_ERROR } from "@/lib/cf/parse-url";
 
 describe("parseCfUrl", () => {
   const group = { kind: "GROUP", cfContestId: 734032, groupCode: "vP4zGe21UV" };
@@ -45,4 +45,20 @@ describe("parseCfUrl", () => {
     );
     expect(canonicalContestUrl({ kind: "GYM", cfContestId: 1, groupCode: null })).toBe("https://codeforces.com/gym/1");
   });
+});
+
+describe("parseGroupCode (linked groups)", () => {
+  it.each([
+    ["vP4zGe21UV", "vP4zGe21UV"],
+    ["  vP4zGe21UV  ", "vP4zGe21UV"],
+    ["https://codeforces.com/group/vP4zGe21UV", "vP4zGe21UV"],
+    ["https://codeforces.com/group/vP4zGe21UV/contests", "vP4zGe21UV"],
+    ["https://codeforces.com/group/vP4zGe21UV/members?x=1", "vP4zGe21UV"],
+    ["https://codeforces.com/group/vP4zGe21UV/contest/734032/standings", "vP4zGe21UV"],
+    ["mirror.codeforces.com/group/vP4zGe21UV/contests", "vP4zGe21UV"],
+  ])("%s -> %s", (input, code) => expect(parseGroupCode(input)).toBe(code));
+
+  it.each(["", "not a group!", "https://example.com/group/vP4zGe21UV", "https://codeforces.com/gym/102951", "https://codeforces.com/groupx/abc"])("rejects %j", (input) =>
+    expect(parseGroupCode(input)).toBeNull(),
+  );
 });

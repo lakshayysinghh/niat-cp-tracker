@@ -58,6 +58,16 @@ export function parseCfUrl(input: string | null | undefined): ParseUrlResult {
   return { ok: false, error: URL_ERROR };
 }
 
+/** Bare group code, or any Codeforces link inside a group (/contests, /members, a contest…). Used by linked groups. */
+export function parseGroupCode(input: string | null | undefined): string | null {
+  const v = String(input ?? "").trim();
+  if (GROUP_CODE.test(v)) return v;
+  const p = parseCfUrl(v);
+  if (p.ok && (p.value.kind === "GROUP_LINK" || p.value.kind === "GROUP")) return p.value.groupCode;
+  const m = /^(?:https?:\/\/)?(?:www\.|mirror\.|m1\.)?codeforces\.(?:com|net)\/group\/([A-Za-z0-9]{1,32})(?:[/?#]|$)/i.exec(v);
+  return m ? m[1] : null;
+}
+
 /** Canonical URL stored in contests.source_url. */
 export function canonicalContestUrl(v: { kind: "GROUP" | "GYM"; cfContestId: number; groupCode: string | null }): string {
   return v.kind === "GROUP"
