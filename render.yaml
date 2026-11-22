@@ -1,0 +1,26 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> pick this repo.
+# Free web service (sleeps after 15 idle minutes; first request can take ~1 minute).
+services:
+  - type: web
+    name: niat-cp-tracker
+    runtime: node
+    plan: free
+    region: singapore # same region as the Neon database (ap-southeast-1)
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /login
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      # Secrets: Render asks for these when you create the Blueprint. Never commit them.
+      - key: DATABASE_URL
+        sync: false
+      - key: CF_API_KEY
+        sync: false
+      - key: CF_API_SECRET
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CF_KEY_HANDLE
+        value: bhagi_1122

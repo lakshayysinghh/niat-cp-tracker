@@ -17,8 +17,8 @@ export interface SessionClaims {
 
 function secretKey(): Uint8Array {
   const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 64) {
-    throw new Error("SESSION_SECRET must be set to 32+ random bytes in hex (openssl rand -hex 32)");
+  if (!secret || secret.length < 32) {
+    throw new Error("SESSION_SECRET must be at least 32 random characters (openssl rand -hex 32, or Render's generated value)");
   }
   return new TextEncoder().encode(secret);
 }
