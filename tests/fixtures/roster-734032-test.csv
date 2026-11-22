@@ -1,0 +1,14 @@
+niat_id,phone,cf_handle,name
+test001,9000000001,usecarelessly18,Test Student 01
+TEST002,+91 90000 00002,priya.m.reddy2006,Test Student 02
+TEST003,09000000003,https://codeforces.com/profile/NotMyBug,Test Student 03
+TEST004,919000000004,Y_ABHILASH_REDDY_2710,Test Student 04
+TEST005,90000-00005,@Sattunashedixd14,Test Student 05
+TEST006,(900) 000 0006,gorugantisathish,Test Student 06
+TEST007,9000000007,abhinavsosa23,
+TEST008,9000000008,ashrithadontha1407,Test Student 08
+TEST009,9000000009,sheelamsai5333,Test Student 09
+TEST010,9000000010,katakamnitheesh613,Test Student 10
+TEST011,9000000011,saikumar121,Test Student 11
+TEST012,9000000012,sailokeshdivvela,Test Student 12
+TEST013,9000000013,zz_fake_handle_test,Fake Handle (should become INVALID)

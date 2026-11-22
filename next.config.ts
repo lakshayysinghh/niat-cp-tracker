@@ -1,9 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
+  // cacheComponents / partialPrefetching are off on purpose: every dashboard page reads
+  // per-request data (session cookie + Neon), so classic dynamic rendering is simpler.
   turbopack: {
     rules: {
       "*.css": {
