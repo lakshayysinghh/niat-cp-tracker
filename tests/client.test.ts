@@ -165,3 +165,35 @@ describe("cfCall client", () => {
     expect(u.searchParams.get("apiSig")).toMatch(/^[a-z0-9]{6}[0-9a-f]{128}$/);
   });
 });
+
+describe("credential cleaning and diagnostics", () => {
+  const KEY = "0123456789abcdef0123456789abcdef01234567";
+  const SECRET = "fedcba9876543210fedcba9876543210fedcba98";
+
+  it("cleanCredential strips spaces, line breaks, quotes and a NAME= prefix", async () => {
+    const { cleanCredential } = await import("@/lib/cf/client");
+    expect(cleanCredential(`  ${KEY}\n`, "CF_API_KEY")).toBe(KEY);
+    expect(cleanCredential(`"${KEY}"`, "CF_API_KEY")).toBe(KEY);
+    expect(cleanCredential(`'${KEY}'`, "CF_API_KEY")).toBe(KEY);
+    expect(cleanCredential(`CF_API_KEY=${KEY}`, "CF_API_KEY")).toBe(KEY);
+    expect(cleanCredential(`CF_API_KEY="${KEY}"`, "CF_API_KEY")).toBe(KEY);
+    expect(cleanCredential(undefined, "CF_API_KEY")).toBeUndefined();
+  });
+
+  it("diagnostics never include the secret and flag paste problems", async () => {
+    const { credentialDiagnostics } = await import("@/lib/cf/client");
+    const clean = await credentialDiagnostics({ CF_API_KEY: KEY, CF_API_SECRET: SECRET });
+    expect(clean).toMatchObject({ keyPrefix: "012345", keyLength: 40, secretLength: 40, issues: [] });
+    expect(clean.secretFingerprint).toMatch(/^[0-9a-f]{8}$/);
+    expect(JSON.stringify(clean)).not.toContain(SECRET);
+
+    const messy = await credentialDiagnostics({ CF_API_KEY: ` "${KEY}" `, CF_API_SECRET: `CF_API_SECRET=${SECRET}` });
+    expect(messy.secretFingerprint).toBe(clean.secretFingerprint); // same secret after cleaning
+    expect(messy.issues.join(" | ")).toMatch(/CF_API_KEY has spaces.*CF_API_KEY is wrapped in quotes.*CF_API_SECRET value starts with "CF_API_SECRET="/);
+
+    const swapped = await credentialDiagnostics({ CF_API_KEY: KEY, CF_API_SECRET: KEY });
+    expect(swapped.issues).toContain("CF_API_KEY and CF_API_SECRET are the same value");
+    const bad = await credentialDiagnostics({ CF_API_KEY: "abc", CF_API_SECRET: "" });
+    expect(bad.issues).toEqual(expect.arrayContaining(["CF_API_SECRET is not set", "CF_API_KEY is not 40 lowercase hex characters (length 3)"]));
+  });
+});

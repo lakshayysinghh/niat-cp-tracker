@@ -140,6 +140,8 @@ export interface CfRawResponse {
   params: CfParams;
   httpStatus: number;
   envelope: CfEnvelope;
+  /** Codeforces' HTTP Date header, for clock-skew diagnostics. */
+  serverDate?: string | null;
 }
 
 export interface CfClient {
@@ -157,7 +159,7 @@ const RETRY_DELAYS_MS = [3000, 6000] as const;
 const defaultSleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 type Attempt =
-  | { kind: "done"; httpStatus: number; envelope: CfEnvelope }
+  | { kind: "done"; httpStatus: number; envelope: CfEnvelope; serverDate: string | null }
   | { kind: "rate-limited"; detail: string };
 
 export function createCfClient(opts: CfClientOptions): CfClient {
@@ -226,14 +228,14 @@ export function createCfClient(opts: CfClientOptions): CfClient {
     if (parsed.data.status === "FAILED" && /call limit exceeded/i.test(parsed.data.comment)) {
       return { kind: "rate-limited", detail: parsed.data.comment };
     }
-    return { kind: "done", httpStatus: res.status, envelope: parsed.data };
+    return { kind: "done", httpStatus: res.status, envelope: parsed.data, serverDate: res.headers.get("date") };
   }
 
   async function request(method: string, params: CfParams = {}): Promise<CfRawResponse> {
     let last = "";
     for (let i = 0; i <= retryDelays.length; i++) {
       const r = await throttled(() => attempt(method, params));
-      if (r.kind === "done") return { method, params, httpStatus: r.httpStatus, envelope: r.envelope };
+      if (r.kind === "done") return { method, params, httpStatus: r.httpStatus, envelope: r.envelope, serverDate: r.serverDate };
       last = r.detail;
       if (i < retryDelays.length) await sleep(retryDelays[i]);
     }
@@ -265,16 +267,68 @@ export function createCfClient(opts: CfClientOptions): CfClient {
 
 let defaultClient: CfClient | undefined;
 
+const QUOTED = /^(['"`])([\s\S]*)\1$/;
+
+/**
+ * Clean a pasted credential: trim spaces / line breaks, drop surrounding quotes and a
+ * pasted "NAME=" prefix. Any of these silently breaks every signature.
+ */
+export function cleanCredential(raw: string | undefined, name: string): string | undefined {
+  if (raw == null) return undefined;
+  let v = raw.trim();
+  if (v.toUpperCase().startsWith(`${name.toUpperCase()}=`)) v = v.slice(name.length + 1).trim();
+  const q = QUOTED.exec(v);
+  if (q) v = q[2].trim();
+  return v;
+}
+
 /** Lazily reads CF_API_KEY, CF_API_SECRET and CF_KEY_HANDLE, so scripts can load env first. */
 export function getCfClient(): CfClient {
   if (!defaultClient) {
-    // Trim: a space or line break pasted into a hosting dashboard silently breaks every signature.
-    const apiKey = process.env.CF_API_KEY?.trim();
-    const secret = process.env.CF_API_SECRET?.trim();
+    const apiKey = cleanCredential(process.env.CF_API_KEY, "CF_API_KEY");
+    const secret = cleanCredential(process.env.CF_API_SECRET, "CF_API_SECRET");
     if (!apiKey || !secret) throw new Error("CF_API_KEY and CF_API_SECRET must be set");
-    defaultClient = createCfClient({ apiKey, secret, keyHandle: process.env.CF_KEY_HANDLE?.trim() });
+    defaultClient = createCfClient({ apiKey, secret, keyHandle: cleanCredential(process.env.CF_KEY_HANDLE, "CF_KEY_HANDLE") });
   }
   return defaultClient;
+}
+
+export interface CredentialDiagnostics {
+  /** first 6 characters of the key (the key is sent in every request URL anyway) */
+  keyPrefix: string;
+  keyLength: number;
+  secretLength: number;
+  /** first 8 hex of SHA-256(secret): compare environments without revealing the secret */
+  secretFingerprint: string;
+  /** problems found in the raw environment values, before cleaning */
+  issues: string[];
+}
+
+/** Safe-to-show facts about the configured credentials. Never returns the secret itself. */
+export async function credentialDiagnostics(env: Record<string, string | undefined> = process.env): Promise<CredentialDiagnostics> {
+  const rawKey = env.CF_API_KEY ?? "";
+  const rawSecret = env.CF_API_SECRET ?? "";
+  const key = cleanCredential(rawKey, "CF_API_KEY") ?? "";
+  const secret = cleanCredential(rawSecret, "CF_API_SECRET") ?? "";
+  const issues: string[] = [];
+  const checks: Array<[string, string, string]> = [
+    ["CF_API_KEY", rawKey, key],
+    ["CF_API_SECRET", rawSecret, secret],
+  ];
+  for (const [name, raw, clean] of checks) {
+    if (!raw) issues.push(`${name} is not set`);
+    if (raw !== raw.trim()) issues.push(`${name} has spaces or a line break around it (now ignored)`);
+    if (QUOTED.test(raw.trim())) issues.push(`${name} is wrapped in quotes (now ignored)`);
+    if (raw.trim().toUpperCase().startsWith(`${name}=`)) issues.push(`${name} value starts with "${name}=" (now ignored)`);
+    if (clean && !/^[0-9a-f]{40}$/.test(clean)) issues.push(`${name} is not 40 lowercase hex characters (length ${clean.length})`);
+  }
+  if (key && key === secret) issues.push("CF_API_KEY and CF_API_SECRET are the same value");
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret));
+  const secretFingerprint = [...new Uint8Array(digest)]
+    .slice(0, 4)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return { keyPrefix: key.slice(0, 6), keyLength: key.length, secretLength: secret.length, secretFingerprint, issues };
 }
 
 export function cfCall<S extends z.ZodType>(

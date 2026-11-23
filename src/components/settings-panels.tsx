@@ -358,28 +358,81 @@ export function GroupsPanel({ groups }: { groups: GroupRow[] }) {
 
 // ---------------------------------------------------------------- key check
 
+interface KeyDiagnostics {
+  keyPrefix: string;
+  keyLength: number;
+  secretLength: number;
+  secretFingerprint: string;
+  issues: string[];
+  clockOffsetSeconds: number | null;
+  serverTime: string;
+}
+
 export function KeyCheckButton() {
   const [pending, setPending] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [result, setResult] = useState<{ ok: boolean; text: string; diagnostics?: KeyDiagnostics } | null>(null);
 
   async function check() {
     setPending(true);
-    const r = await api<{ ok: boolean; keyHandle: string; latencyMs: number }>("/api/settings/cf-check", "POST");
+    try {
+      // Plain fetch: the diagnostics come back on failures too.
+      const res = await fetch("/api/settings/cf-check", { method: "POST" });
+      const body = (await res.json().catch(() => null)) as { ok?: boolean; keyHandle?: string; latencyMs?: number; error?: string; diagnostics?: KeyDiagnostics } | null;
+      setResult(
+        res.ok && body?.ok
+          ? { ok: true, text: `Key works · ${body.keyHandle} · ${body.latencyMs} ms`, diagnostics: body.diagnostics }
+          : { ok: false, text: body?.error ?? `Check failed (HTTP ${res.status})`, diagnostics: body?.diagnostics },
+      );
+    } catch {
+      setResult({ ok: false, text: "Could not reach the server" });
+    }
     setPending(false);
-    setResult(r.ok && r.data ? { ok: true, text: `Key works · ${r.data.keyHandle} · ${r.data.latencyMs} ms` } : { ok: false, text: r.error ?? "Check failed" });
   }
 
+  const d = result?.diagnostics;
+  const skewBad = d?.clockOffsetSeconds != null && Math.abs(d.clockOffsetSeconds) > 60;
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex max-w-xl flex-col items-end gap-2">
       <Button variant="outline" size="sm" onClick={check} disabled={pending}>
         {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <KeyRound className="size-4" aria-hidden />}
         Check Codeforces key
       </Button>
       {result && (
-        <span className={cn("inline-flex items-center gap-1.5 text-xs", result.ok ? "text-emerald-300" : "text-red-300")}>
-          {result.ok && <ShieldCheck className="size-3.5" aria-hidden />}
-          {result.text}
-        </span>
+        <div className={cn("w-full rounded-lg border px-3 py-2 text-xs", result.ok ? "border-emerald-400/25 text-emerald-200" : "border-red-400/25 text-red-200")}>
+          <p className="inline-flex items-start gap-1.5">
+            {result.ok && <ShieldCheck className="mt-px size-3.5 shrink-0" aria-hidden />}
+            {result.text}
+          </p>
+          {d && (
+            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-muted-foreground">
+              <dt>Key starts with</dt>
+              <dd className="font-mono text-foreground">
+                {d.keyPrefix}… <span className="text-muted-foreground">({d.keyLength} chars)</span>
+              </dd>
+              <dt>Secret fingerprint</dt>
+              <dd className="font-mono text-foreground">
+                {d.secretFingerprint} <span className="text-muted-foreground">({d.secretLength} chars)</span>
+              </dd>
+              <dt>Clock vs Codeforces</dt>
+              <dd className={cn("tabular-nums", skewBad ? "text-red-300" : "text-foreground")}>
+                {d.clockOffsetSeconds == null ? "unknown" : `${d.clockOffsetSeconds > 0 ? "+" : ""}${d.clockOffsetSeconds} s`}
+                {skewBad && " (too far off; signatures can fail)"}
+              </dd>
+              {d.issues.length > 0 && (
+                <>
+                  <dt className="text-amber-300">Problems</dt>
+                  <dd className="text-amber-200">{d.issues.join(" · ")}</dd>
+                </>
+              )}
+            </dl>
+          )}
+          {d && !result.ok && (
+            <p className="mt-2 text-muted-foreground">
+              Compare “Key starts with” and “Secret fingerprint” with the same check run locally (it uses .env.local). If they differ, the values here are not the
+              ones that work.
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
