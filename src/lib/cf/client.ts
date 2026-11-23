@@ -51,7 +51,11 @@ export class CfContestAccessError extends CfError {
 /** `apiKey: …`, `apiSig: …`, `time: …` or a signature problem. */
 export class CfAuthError extends CfError {
   constructor(method: string, comment: string) {
-    super("CF_AUTH", `Codeforces rejected the API key or signature: ${comment}`, { method, comment });
+    super(
+      "CF_AUTH",
+      `Codeforces rejected the API key or signature: ${comment}. Check CF_API_KEY and CF_API_SECRET where this app runs (Render environment / GitHub Actions secrets): the same pair as on codeforces.com/settings/api, not swapped, no spaces.`,
+      { method, comment },
+    );
   }
 }
 
@@ -90,6 +94,13 @@ export interface CfErrorContext {
 export function mapCfError(method: string, comment: string, ctx: CfErrorContext = {}): CfError {
   const c = comment.trim();
 
+  // A key/signature problem wins over everything else. Codeforces can report several
+  // parameters at once ("contestId: … not found;apiKey: Incorrect signature"); with a bad
+  // signature the request is treated as anonymous, so "not found" is only a symptom.
+  if (/(^|;\s*)(apiKey|apiSig|time)\s*:/i.test(c) || /incorrect signature|incorrect api key/i.test(c)) {
+    return new CfAuthError(method, comment);
+  }
+
   const notFound = /^handles?:\s*User with handle (.+?) not found/i.exec(c);
   if (notFound) return new CfHandleNotFoundError(method, comment, notFound[1]);
 
@@ -103,8 +114,6 @@ export function mapCfError(method: string, comment: string, ctx: CfErrorContext 
       : `Make sure the contest ID is correct and ${who} is a manager of the contest.`;
     return new CfContestAccessError(method, comment, `Codeforces could not show contest${contest} to ${who}. ${fix} (${c})`);
   }
-
-  if (/^(apiKey|apiSig|time)\s*:/i.test(c) || /signature/i.test(c)) return new CfAuthError(method, comment);
 
   return new CfFailedError(method, comment);
 }
@@ -259,10 +268,11 @@ let defaultClient: CfClient | undefined;
 /** Lazily reads CF_API_KEY, CF_API_SECRET and CF_KEY_HANDLE, so scripts can load env first. */
 export function getCfClient(): CfClient {
   if (!defaultClient) {
-    const apiKey = process.env.CF_API_KEY;
-    const secret = process.env.CF_API_SECRET;
+    // Trim: a space or line break pasted into a hosting dashboard silently breaks every signature.
+    const apiKey = process.env.CF_API_KEY?.trim();
+    const secret = process.env.CF_API_SECRET?.trim();
     if (!apiKey || !secret) throw new Error("CF_API_KEY and CF_API_SECRET must be set");
-    defaultClient = createCfClient({ apiKey, secret, keyHandle: process.env.CF_KEY_HANDLE });
+    defaultClient = createCfClient({ apiKey, secret, keyHandle: process.env.CF_KEY_HANDLE?.trim() });
   }
   return defaultClient;
 }

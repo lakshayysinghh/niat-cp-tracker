@@ -41,6 +41,28 @@ describe("mapCfError (comment-prefix mapping)", () => {
     expect(mapCfError("x", "apiSig: Incorrect signature")).toBeInstanceOf(CfAuthError);
   });
 
+  it("a key/signature error wins when Codeforces reports several parameters", () => {
+    const e = mapCfError("contest.standings", "contestId: Contest with id 734032 not found;apiKey: Incorrect signature", {
+      keyHandle: "bhagi_1122",
+      groupCode: "vP4zGe21UV",
+      contestId: 734032,
+    });
+    expect(e).toBeInstanceOf(CfAuthError);
+    expect(e.message).toContain("Codeforces rejected the API key or signature");
+    expect(e.message).toContain("Check CF_API_KEY and CF_API_SECRET");
+    expect(e.message).not.toContain("Manager");
+  });
+
+  it("plain contest not found still points at the Manager checkbox", () => {
+    const e = mapCfError("contest.standings", "contestId: Contest with id 734032 not found", { groupCode: "vP4zGe21UV", contestId: 734032 });
+    expect(e).toBeInstanceOf(CfContestAccessError);
+  });
+
+  it("the asManager refusal is not mistaken for a key problem", () => {
+    const e = mapCfError("contest.standings", 'contestId: Contest with id 1 not found;asManager: Only contest managers can use "asManager" option');
+    expect(e).toBeInstanceOf(CfContestAccessError);
+  });
+
   it("falls back to CfFailedError", () => {
     expect(mapCfError("x", "something else")).toBeInstanceOf(CfFailedError);
   });
