@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { TimeAgo } from "@/components/client-bits";
 import { DeleteContestButton, RefreshContestButton } from "@/components/contest-actions";
-import { Meter, td, th } from "@/components/ui-kit";
+import { Meter, stickyHead, tableScroll, td, th } from "@/components/ui-kit";
 import { Input } from "@/components/ui/input";
 import { matchesContestQuery } from "@/lib/contest-search";
 import { fixed1, formatDateIST, pct } from "@/lib/format";
@@ -85,9 +85,9 @@ export function ContestsTable({ contests, rosterSize }: { contests: ContestListI
       </div>
 
       <section className="overflow-hidden rounded-xl border border-border bg-card/40">
-        <div className="scrollbar-thin overflow-x-auto">
+        <div className={tableScroll} style={{ maxHeight: "calc(100vh - 290px)", minHeight: 280 }}>
           <table className="w-full min-w-[980px] text-sm">
-            <thead className="border-b border-border">
+            <thead className={stickyHead}>
               <tr>
                 <th className={th}>Contest</th>
                 <th className={th}>Date</th>

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { CopyButton, TimeAgo } from "@/components/client-bits";
 import { HandleBadge } from "@/components/status-badge";
 import { StudentFormDialog, type EditableStudent } from "@/components/student-dialogs";
-import { EmptyState, td, th } from "@/components/ui-kit";
+import { EmptyState, stickyHead, tableScroll, td, th } from "@/components/ui-kit";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -78,9 +78,9 @@ export function StudentsTable({ rows }: { rows: RosterTableRow[] }) {
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name, NIAT ID, handle, college or phone" aria-label="Search students" className="h-8 pl-8 text-[13px]" />
       </div>
 
-      <section className="scrollbar-thin overflow-x-auto rounded-xl border border-border bg-card/40">
+      <section className={cn(tableScroll, "rounded-xl border border-border bg-card/40")} style={{ maxHeight: "calc(100vh - 250px)", minHeight: 280 }}>
         <table className="w-full min-w-[1040px] text-sm">
-          <thead className="border-b border-border">
+          <thead className={stickyHead}>
             <tr>
               <th className={th}>NIAT ID</th>
               <th className={th}>Student</th>

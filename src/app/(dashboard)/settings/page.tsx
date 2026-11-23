@@ -2,7 +2,7 @@ import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { TimeAgo } from "@/components/client-bits";
 import { AdminsPanel, GroupsPanel, KeyCheckButton, PasswordForm } from "@/components/settings-panels";
-import { EmptyState, ErrorBanner, PageHeader, Panel, td, th } from "@/components/ui-kit";
+import { EmptyState, ErrorBanner, PageHeader, Panel, stickyHead, td, th } from "@/components/ui-kit";
 import { requireRole, verifySession } from "@/lib/auth";
 import { getSettings } from "@/lib/queries/settings";
 import { cn } from "@/lib/utils";
@@ -70,7 +70,7 @@ export default async function SettingsPage() {
           ) : (
             <div className="scrollbar-thin max-h-[520px] overflow-auto">
               <table className="w-full min-w-[640px] text-sm">
-                <thead className="sticky top-0 z-10 border-b border-border bg-card">
+                <thead className={stickyHead}>
                   <tr>
                     <th className={th}>When</th>
                     <th className={th}>What</th>

@@ -6,7 +6,7 @@ import { EditStudentButton } from "@/components/edit-student-button";
 import { PracticeCharts } from "@/components/practice-charts";
 import { RemarksEditor } from "@/components/remarks-panel";
 import { HandleBadge, ParticipationBadge } from "@/components/status-badge";
-import { EmptyState, Meter, PageHeader, Panel, Stat, td, th } from "@/components/ui-kit";
+import { EmptyState, Meter, PageHeader, Panel, Stat, stickyHead, tableScroll, td, th } from "@/components/ui-kit";
 import { verifySession } from "@/lib/auth";
 import { fixed1, formatDateIST, formatPhone, isPlaceholderNiatId, pct, problemUrl, profileUrl } from "@/lib/format";
 import { getStudentHomework } from "@/lib/queries/homework";
@@ -77,9 +77,9 @@ export default async function StudentPage({ params }: PageProps<"/students/[niat
         {history.length === 0 ? (
           <EmptyState title="No contests synced yet">Add a contest on the Contests page to see this student&apos;s results.</EmptyState>
         ) : (
-          <div className="scrollbar-thin overflow-x-auto">
+          <div className={tableScroll} style={{ maxHeight: "70vh" }}>
             <table className="w-full min-w-[900px] text-sm">
-              <thead className="border-b border-border">
+              <thead className={stickyHead}>
                 <tr>
                   <th className={th}>Date</th>
                   <th className={th}>Contest</th>

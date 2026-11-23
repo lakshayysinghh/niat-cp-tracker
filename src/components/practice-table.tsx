@@ -4,7 +4,7 @@ import { ArrowDownRight, ArrowUpRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { HandleBadge } from "@/components/status-badge";
-import { td, th } from "@/components/ui-kit";
+import { stickyHead, tableScroll, td, th } from "@/components/ui-kit";
 import { Input } from "@/components/ui/input";
 import { profileUrl } from "@/lib/format";
 import type { PracticeRow } from "@/lib/queries/practice";
@@ -108,9 +108,9 @@ export function PracticeTable({ rows }: { rows: PracticeRow[] }) {
         </label>
       </div>
 
-      <section className="scrollbar-thin overflow-x-auto rounded-xl border border-border bg-card/40">
+      <section className={cn(tableScroll, "rounded-xl border border-border bg-card/40")} style={{ maxHeight: "calc(100vh - 380px)", minHeight: 320 }}>
         <table className="w-full min-w-[1040px] text-sm">
-          <thead>
+          <thead className={stickyHead}>
             <tr>
               <th colSpan={4} aria-hidden className="border-b border-border" />
               <Group className="border-l border-border">Practice</Group>

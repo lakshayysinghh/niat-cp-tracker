@@ -105,3 +105,11 @@ export function Meter({ value, max, label }: { value: number; max: number; label
 
 export const th = "px-3 py-2.5 text-left text-[11px] font-medium uppercase tracking-wider text-muted-foreground";
 export const td = "px-3 py-2.5";
+
+/**
+ * Frozen table headers: put the table in its own scroll box (sized to the window, so
+ * the box scrolls instead of the page) and pin <thead> to its top. The header is opaque
+ * and draws its bottom edge as an inset shadow, which (unlike a border) stays visible.
+ */
+export const tableScroll = "scrollbar-thin overflow-auto";
+export const stickyHead = "sticky top-0 z-10 bg-card shadow-[inset_0_-1px_0_var(--border)]";
