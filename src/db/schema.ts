@@ -230,6 +230,60 @@ export const ratingSnapshots = pgTable(
   (t) => [primaryKey({ columns: [t.studentId, t.takenOn] })]
 );
 
+// Phase 6: homework (imported from the team's master sheet; the API cannot read the
+// external homework group, so scores arrive by CSV import or manual edit).
+export const homeworkScoreSource = pgEnum("homework_score_source", ["IMPORT", "MANUAL"]);
+
+/** One column of the master homework table, e.g. "Sheet #1" with 26 problems. */
+export const homeworkColumns = pgTable(
+  "homework_columns",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    batchId: uuid("batch_id").notNull().references(() => batches.id, { onDelete: "cascade" }),
+    title: text("title").notNull(), // as in the sheet header, without "(N Problems)"
+    problemCount: integer("problem_count").notNull(),
+    groupCode: text("group_code"), // Codeforces link (optional): group + contest id
+    cfContestId: integer("cf_contest_id"),
+    sortOrder: integer("sort_order").default(0).notNull(), // left-to-right order
+    lastImportedAt: tsz("last_imported_at"),
+    createdAt: createdAt(),
+    updatedAt: tsz("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+  },
+  (t) => [uniqueIndex("homework_columns_batch_title_uidx").on(t.batchId, t.title)]
+);
+
+/** A student's solved count on one homework column. Missing row = 0 (never #N/A). */
+export const homeworkScores = pgTable(
+  "homework_scores",
+  {
+    columnId: uuid("column_id").notNull().references(() => homeworkColumns.id, { onDelete: "cascade" }),
+    studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
+    solved: integer("solved").notNull(),
+    source: homeworkScoreSource("source").default("IMPORT").notNull(),
+    updatedBy: uuid("updated_by").references(() => admins.id, { onDelete: "set null" }),
+    updatedAt: tsz("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+  },
+  (t) => [primaryKey({ columns: [t.columnId, t.studentId] }), index("homework_scores_student_idx").on(t.studentId)]
+);
+
+/** Dated mentor follow-up notes; one per student per day. */
+export const studentRemarks = pgTable(
+  "student_remarks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    studentId: uuid("student_id").notNull().references(() => students.id, { onDelete: "cascade" }),
+    remarkDate: date("remark_date").notNull(), // YYYY-MM-DD, shown as DD/MM
+    content: text("content").notNull(),
+    adminId: uuid("admin_id").references(() => admins.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: tsz("updated_at").defaultNow().notNull().$onUpdate(() => new Date()),
+  },
+  (t) => [
+    uniqueIndex("student_remarks_student_date_uidx").on(t.studentId, t.remarkDate),
+    index("student_remarks_date_idx").on(t.remarkDate),
+  ]
+);
+
 // Relations
 export const batchesRelations = relations(batches, ({ many }) => ({
   students: many(students),

@@ -4,10 +4,12 @@ import { notFound } from "next/navigation";
 import { CopyButton, TimeAgo } from "@/components/client-bits";
 import { EditStudentButton } from "@/components/edit-student-button";
 import { PracticeCharts } from "@/components/practice-charts";
+import { RemarksEditor } from "@/components/remarks-panel";
 import { HandleBadge, ParticipationBadge } from "@/components/status-badge";
 import { EmptyState, Meter, PageHeader, Panel, Stat, td, th } from "@/components/ui-kit";
 import { verifySession } from "@/lib/auth";
 import { fixed1, formatDateIST, formatPhone, isPlaceholderNiatId, pct, problemUrl, profileUrl } from "@/lib/format";
+import { getStudentHomework } from "@/lib/queries/homework";
 import { getStudentPractice } from "@/lib/queries/practice";
 import { getStudentDetail } from "@/lib/queries/students";
 import { cn } from "@/lib/utils";
@@ -23,7 +25,7 @@ export default async function StudentPage({ params }: PageProps<"/students/[niat
   const d = await getStudentDetail(decodeURIComponent(niatId));
   if (!d) notFound();
   const { student: s, history, kpis } = d;
-  const practice = await getStudentPractice(s.id);
+  const [practice, homework] = await Promise.all([getStudentPractice(s.id), getStudentHomework(s.id, s.batchId)]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,6 +137,28 @@ export default async function StudentPage({ params }: PageProps<"/students/[niat
           </div>
         )}
       </Panel>
+
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Panel title="Homework" description="From the master sheet; 0 when no score was recorded." className="lg:col-span-3">
+          {homework.columns.length === 0 ? (
+            <EmptyState title="No homework imported yet">Import the master sheet on the Homework page.</EmptyState>
+          ) : (
+            <ul className="divide-y divide-border">
+              {homework.columns.map((c) => (
+                <li key={c.id} className="flex items-center gap-3 px-4 py-2">
+                  <span className="min-w-0 flex-1 truncate text-sm">{c.title}</span>
+                  <Meter value={c.solved} max={c.problemCount} label={`${c.solved} / ${c.problemCount}${c.solved >= c.problemCount ? " ✓" : ""}`} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+        <Panel title="Mentor remarks" description="Dated follow-up notes; one per day." className="lg:col-span-2">
+          <div className="p-4">
+            <RemarksEditor studentId={s.id} remarks={homework.remarks} compact />
+          </div>
+        </Panel>
+      </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-medium">Practice</h2>
